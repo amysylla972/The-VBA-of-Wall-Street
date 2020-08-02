@@ -1,80 +1,152 @@
-Sub StockMarketAnalysis()
 
-    ' --------------------------------------------
-    ' LOOP THROUGH ALL SHEETS AND ADD HEADERs + INFOS
-    ' --------------------------------------------
-    For Each ws In Worksheets
-
-'Headers
-
-       ws.Cells(1, 9).Value = "Ticker Type"
-       ws.Cells(1, 10).Value = "Yearly Change"
-       ws.Cells(1, 11).Value = "Percent Change"
-       ws.Cells(1, 12).Value = "Total Stock Volume"
-       ws.Cells(2, 15).Value = "Greatest % Increase"
-       ws.Cells(3, 15).Value = "Greatest % Decrease"
-       ws.Cells(4, 15).Value = "Greteast Total Volume"
-       ws.Cells(1, 16).Value = "Ticker Type"
-       ws.Cells(1, 17).Value = "Value"
-       
-       
- ' Set initial variables for holding the Ticker Type and their Total Stock Value
+Sub Market()
+ Dim Ws As Worksheet
+ 'For hard solution
+ Dim COMMAND_SPREADSHEET As Boolean
   
-  Dim Ticker_Type As String
-  Dim Total_StockVolume As Double
- 
+    COMMAND_SPREADSHEET = True
+    
+    For Each Ws In Worksheets
+
+        Dim TickerName As String
+        Dim TotalVolume As Double
+        Dim OpenPrice As Double
+        Dim ClosePrice As Double
+        Dim YearlyChange As Double
+        Dim Percentage As Double
+        Dim Summary_Table_Row As Long
+        Dim MaxTicker As String
+        Dim MinTicker As String
+        Dim MaxPercent As Double
+        Dim MinPercent As Double
+        Dim MaxVolumeTicker As String
+        Dim MaxVolume As Double
+        Dim Lastrow As Long
+        Dim i As Long
+          
+          'Set Variables
+        Percentage = 0
+        YearlyChange = 0
+        ClosePrice = 0
+        TotalVolume = 0
+        OpenPrice = 0
+        Summary_Table_Row = 2
+        MaxTicker = " "
+        MinTicker = " "
+        MaxPercent = 0
+        MaxVolumeTicker = " "
+        MaxVolume = 0
+        MinPercent = 0
+           
+        Lastrow = Ws.Cells(Rows.Count, 1).End(xlUp).Row
+           
+           
+        'Header for everysheets
   
-  'Set initial Value of Stock Volume
-  
-  Total_StockVolume = 0
-  
-  
- ' Keep track of the location for each credit card brand in the summary table
-  
-  Dim Summary_Table_Row As Integer
-  Summary_Table_Row = 2
 
-  
-  ' Loop through all cells to record Ticker type + Adding their value
-  
-lastrow = ws.Cells(Rows.Count, 1).End(xlUp).Row
- 
-  For i = 2 To lastrow
+            
+            Ws.Range("I1").Value = "Ticker"
+            Ws.Range("J1").Value = "Yearly Change"
+            Ws.Range("K1").Value = "Percent Change"
+            Ws.Range("L1").Value = "Total Stock Volume"
+            Ws.Range("O2").Value = "Greatest % Increase"
+            Ws.Range("O3").Value = "Greatest % Decrease"
+            Ws.Range("O4").Value = "Greatest Total Volume"
+            Ws.Range("P1").Value = "Ticker"
+            Ws.Range("Q1").Value = "Value"
+     
+       'Start of OpenPrice before looping
+        OpenPrice = Ws.Cells(2, 3).Value
+        
+    
+        
+        ' Loop
+        For i = 2 To Lastrow
+        
+            If Ws.Cells(i + 1, 1).Value <> Ws.Cells(i, 1).Value Then
+            
+                
+                TickerName = Ws.Cells(i, 1).Value
+                ClosePrice = Ws.Cells(i, 6).Value
+                YearlyChange = ClosePrice - OpenPrice
+                ' Check Division by 0 condition
+                If OpenPrice <> 0 Then
+                    Percentage = (YearlyChange / OpenPrice) * 100
+                Else
+                    ' Unlikely, but it needs to be checked to avoid program crushing
+                    MsgBox ("For " & TickerName & ", Row " & CStr(i) & ": Open Price =" & OpenPrice & ". Can't be divided by 0! Check your Open prices")
+                End If
+                
+                TotalVolume = TotalVolume + Ws.Cells(i, 7).Value
+              
+                
+                ' Print the Ticker Name And change
+                
+                Ws.Range("I" & Summary_Table_Row).Value = TickerName
+                Ws.Range("J" & Summary_Table_Row).Value = YearlyChange
+                
+                ' Change Color
+                If (YearlyChange > 0) Then
+                    
+                    Ws.Range("J" & Summary_Table_Row).Interior.ColorIndex = 4
+                ElseIf (YearlyChange <= 0) Then
+                    
+                    Ws.Range("J" & Summary_Table_Row).Interior.ColorIndex = 3
+                End If
+                
+        
+                Ws.Range("K" & Summary_Table_Row).Value = (CStr(Percentage) & "%")
+          
+                Ws.Range("L" & Summary_Table_Row).Value = TotalVolume
+                
+        
+                Summary_Table_Row = Summary_Table_Row + 1
+                
+                'Reset
+                YearlyChange = 0
+                ClosePrice = 0
+                OpenPrice = Ws.Cells(i + 1, 3).Value
+              
+                
+                If (Percentage > MaxPercent) Then
+                    MaxPercent = Percentage
+                    MaxTicker = TickerName
+                    
+                ElseIf (Percentage < MinPercent) Then
+                    MinPercent = Percentage
+                    MinTicker = TickerName
+                End If
+                       
+                If (TotalVolume > MaxVolume) Then
+                    MaxVolume = TotalVolume
+                    MaxVolumeTicker = TickerName
+                End If
+                
+              
+                Percentage = 0
+                TotalVolume = 0
+                
+            
+          
+            Else
+             
+                TotalVolume = TotalVolume + Ws.Cells(i, 7).Value
+            End If
+            
+        Next i
 
-    ' Check if we are still within the same credit card brand, if we are not...
-    If ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then
-
-  ' Set the Ticker Type
-      Ticker_Type = ws.Cells(i, 1).Value
-
-      ' Add to the Stock Total
-      Total_StockVolume = Total_StockVolume + ws.Cells(i, 7).Value
-
-      ' Print the Credit Card Brand in the Summary Table
-      ws.Range("I" & Summary_Table_Row).Value = Ticker_Type
-
-      ' Print the Brand Amount to the Summary Table
-      ws.Range("L" & Summary_Table_Row).Value = Total_StockVolume
-
-      ' Add one to the summary table row
-      Summary_Table_Row = Summary_Table_Row + 1
-      
-      ' Reset the Brand Total
-      Total_StockVolume = 0
-
-    ' If the cell immediately following a row is the same brand...
-    Else
-
-      ' Add to the Brand Total
-      Total_StockVolume = Total_StockVolume + ws.Cells(i, 7).Value
-
-    End If
-
-  Next i
-
-       
-  Next ws
-
-
+            If Not COMMAND_SPREADSHEET Then
+            
+                Ws.Range("Q2").Value = (CStr(MaxPercent) & "%")
+                Ws.Range("Q3").Value = (CStr(MinPercent) & "%")
+                Ws.Range("P2").Value = MaxTicker
+                Ws.Range("P3").Value = MinTicker
+                Ws.Range("Q4").Value = MaxVolume
+                Ws.Range("P4").Value = MaxVolumeTicker
+                
+            Else
+                COMMAND_SPREADSHEET = False
+            End If
+        
+     Next Ws
 End Sub
-
