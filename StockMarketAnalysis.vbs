@@ -1,4 +1,3 @@
-
 Sub Market()
  Dim Ws As Worksheet
  'For hard solution
@@ -54,7 +53,8 @@ Sub Market()
             Ws.Range("O4").Value = "Greatest Total Volume"
             Ws.Range("P1").Value = "Ticker"
             Ws.Range("Q1").Value = "Value"
-     
+            Ws.Cells.EntireColumn.AutoFit
+            
        'Start of OpenPrice before looping
         OpenPrice = Ws.Cells(2, 3).Value
         
